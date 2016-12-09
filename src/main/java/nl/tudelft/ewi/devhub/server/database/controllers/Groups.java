@@ -25,9 +25,9 @@ public class Groups extends Controller<Group> {
 	@Transactional
 	public Group findByRepoName(String repoName) {
 		Preconditions.checkNotNull(repoName);
-		Group res = query().from(group)
+		Group res = query().selectFrom(group)
 			.where(group.repository.repositoryName.equalsIgnoreCase(repoName))
-			.singleResult(group);
+			.fetchOne();
 
 		return ensureNotNull(res, "Could not find group by repository name: " + repoName);
 	}
@@ -35,28 +35,28 @@ public class Groups extends Controller<Group> {
 	@Transactional
 	public List<Group> find(CourseEdition course) {
 		Preconditions.checkNotNull(course);
-		return query().from(group)
+		return query().selectFrom(group)
 			.where(group.courseEdition.id.eq(course.getId()))
 			.orderBy(group.groupNumber.asc())
-			.list(group);
+			.fetch();
 	}
 
 	@Transactional
 	public List<Group> listFor(User user) {
 		Preconditions.checkNotNull(user);
-		return query().from(group)
+		return query().selectFrom(group)
 			.where(group.members.contains(user))
 			.orderBy(group.groupNumber.asc())
-			.list(group);
+			.fetch();
 	}
 
 	@Transactional
 	public Group find(CourseEdition course, long groupNumber) {
 		Preconditions.checkNotNull(course);
-		Group res = query().from(group)
+		Group res = query().selectFrom(group)
 			.where(group.courseEdition.id.eq(course.getId()))
 			.where(group.groupNumber.eq(groupNumber))
-			.singleResult(group);
+			.fetchOne();
 
 		return ensureNotNull(res, "Could not find group by course: " + course + " and groupNumber: " + groupNumber);
 	}
@@ -66,10 +66,10 @@ public class Groups extends Controller<Group> {
 		Preconditions.checkNotNull(courseEdition);
 		Preconditions.checkNotNull(user);
 
-		return ensureNotNull(query().from(group)
+		return ensureNotNull(query().selectFrom(group)
 			.where(group.members.contains(user)
 			.and(group.courseEdition.eq(courseEdition)))
-			.singleResult(group),
+			.fetchOne(),
 			String.format("Could not find group by course %s and user %s", courseEdition, user));
 	}
 

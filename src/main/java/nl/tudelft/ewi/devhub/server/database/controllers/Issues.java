@@ -22,37 +22,37 @@ public class Issues extends Controller<Issue> {
 	
 	@Transactional
 	public List<Issue> findAssignedIssues(final RepositoryEntity repo, User user){
-		return query().from(issue)
+		return query().selectFrom(issue)
 			.where(issue.repository.eq(repo).and(issue.assignee.eq(user)))
-			.list(issue);
+			.fetch();
 	}
 	
 	@Transactional
 	public List<Issue> findOpenIssues(final RepositoryEntity repo){
-		return query().from(issue)
+		return query().selectFrom(issue)
 			.where(issue.repository.eq(repo).and(issue.open.isTrue()))
-			.list(issue);
+			.fetch();
 	}
 	
 	@Transactional
 	public List<Issue> findClosedIssues(final RepositoryEntity repo){
-		return query().from(issue)
+		return query().selectFrom(issue)
 			.where(issue.repository.eq(repo).and(issue.open.isFalse()))
-			.list(issue);
+			.fetch();
 	}
 
 	@Transactional
 	public List<Issue> findUnassignedIssues(final RepositoryEntity repo){
-		return query().from(issue)
+		return query().selectFrom(issue)
 			.where(issue.repository.eq(repo).and(issue.assignee.isNull()))
-			.list(issue);
+			.fetch();
 	}
 
 	@Transactional
 	public List<Issue> findIssueById(final RepositoryEntity repo, final long id){
-		return query().from(issue)
+		return query().selectFrom(issue)
 			.where(issue.repository.eq(repo).and(issue.issueId.eq(id)))
-			.list(issue);
+			.fetch();
 	}
 
 }

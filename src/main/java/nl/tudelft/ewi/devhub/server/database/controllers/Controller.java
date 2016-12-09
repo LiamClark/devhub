@@ -1,11 +1,11 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
 import com.mysema.commons.lang.CloseableIterator;
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.extern.slf4j.Slf4j;
 
 import com.google.common.base.Preconditions;
 import com.google.inject.persist.Transactional;
-import com.mysema.query.jpa.impl.JPAQuery;
 
 import org.hibernate.Hibernate;
 import org.hibernate.engine.spi.SessionImplementor;
@@ -57,8 +57,8 @@ public class Controller<T> {
 		return entity;
 	}
 
-	public JPAQuery query() {
-		return new JPAQuery(entityManager);
+	public JPAQueryFactory query() {
+		return new JPAQueryFactory(entityManager);
 	}
 
 	protected T ensureNotNull(T entry, String error) {

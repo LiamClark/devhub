@@ -1,5 +1,8 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
+import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.jpa.JPAExpressions;
+import com.querydsl.jpa.impl.JPAQuery;
 import nl.tudelft.ewi.devhub.server.database.entities.Course;
 import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
@@ -7,10 +10,6 @@ import nl.tudelft.ewi.devhub.server.database.entities.User;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.persist.Transactional;
-import com.mysema.query.jpa.JPASubQuery;
-import com.mysema.query.jpa.impl.JPAQuery;
-import com.mysema.query.types.OrderSpecifier;
-import com.mysema.query.types.query.ListSubQuery;
 
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
@@ -30,9 +29,9 @@ public class CourseEditions extends Controller<CourseEdition> {
 
 	@Transactional
 	public CourseEdition find(long id) {
-		return ensureNotNull(query().from(courseEdition)
+		return ensureNotNull(query().selectFrom(courseEdition)
 			.where(courseEdition.id.eq(id))
-			.singleResult(courseEdition), "Could not find course with id: " + id);
+			.fetchOne(), "Could not find course with id: " + id);
 	}
 
 	@Transactional
@@ -40,17 +39,18 @@ public class CourseEditions extends Controller<CourseEdition> {
 		Preconditions.checkNotNull(courseCode);
 		Preconditions.checkNotNull(period);
 
-		return ensureNotNull(query().from(courseEdition)
+		return ensureNotNull(query().selectFrom(courseEdition)
 			.where(courseEdition.code.equalsIgnoreCase(period)
 				.and(courseEdition.course.code.equalsIgnoreCase(courseCode)))
-			.singleResult(courseEdition), "Could not find course with code: " + courseCode);
+			.fetchOne(), "Could not find course with code: " + courseCode);
 	}
 
     @Transactional
     public List<CourseEdition> listParticipatingCourses(User user) {
 		return query().from(group)
 				.where(group.members.contains(user))
-				.list(group.courseEdition);
+				.select(group.courseEdition)
+				.fetch();
     }
 
 	/**
@@ -68,14 +68,14 @@ public class CourseEditions extends Controller<CourseEdition> {
     @Transactional
     public List<CourseEdition> listAdministratingCourses(User user) {
         if(user.isAdmin()) {
-            return query().from(courseEdition).list(courseEdition);
+            return query().selectFrom(courseEdition).fetch();
         }
-        return ImmutableList.<CourseEdition> of();
+        return ImmutableList.of();
     }
 
-	private JPAQuery activeCoursesBaseQuery() {
+	private JPAQuery<CourseEdition> activeCoursesBaseQuery() {
 		Date now = new Date();
-		return query().from(courseEdition)
+		return query().selectFrom(courseEdition)
 			.where(courseEdition.timeSpan.start.before(now)
 				.and(courseEdition.timeSpan.end.isNull()
 					.or(courseEdition.timeSpan.end.after(now))));
@@ -85,28 +85,29 @@ public class CourseEditions extends Controller<CourseEdition> {
 	public List<CourseEdition> listActiveCourses() {
 		return activeCoursesBaseQuery()
 			.orderBy(courseOrdering())
-			.list(courseEdition);
+			.fetch();
 	}
 
 	@Transactional
 	public CourseEdition getActiveCourseEdition(Course course) {
 		return ensureNotNull(activeCoursesBaseQuery()
 			.where(courseEdition.course.eq(course))
-			.singleResult(courseEdition), "Could not find active course edition for " + course);
+			.fetchOne(), "Could not find active course edition for " + course);
 	}
 
 	@Transactional
 	public List<CourseEdition> listNotYetParticipatedCourses(User user) {
 		Preconditions.checkNotNull(user);
 
-		ListSubQuery<CourseEdition> participatingCourses = new JPASubQuery().from(group)
+		List<CourseEdition> participatingCourses = JPAExpressions.selectFrom(group)
 			.where(group.members.contains(user))
-			.list(group.courseEdition);
+				.select(group.courseEdition)
+			.fetch();
 
 		return activeCoursesBaseQuery()
 			.where(courseEdition.notIn(participatingCourses))
 			.orderBy(courseOrdering())
-			.list(courseEdition);
+			.fetch();
 	}
 
 	private static OrderSpecifier<?>[] courseOrdering() {

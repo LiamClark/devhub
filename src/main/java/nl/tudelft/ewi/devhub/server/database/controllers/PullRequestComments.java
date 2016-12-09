@@ -30,11 +30,11 @@ public class PullRequestComments extends Controller<PullRequestComment> {
      */
     @Transactional
     public Stream<PullRequestComment> getMostRecentPullRequestComments(List<? extends RepositoryEntity> repositoryEntities, long limit) {
-        return toStream(query().from(pullRequestComment)
+        return toStream(query().selectFrom(pullRequestComment)
             .where(pullRequestComment.pullRequest.repository.in(repositoryEntities))
             .orderBy(pullRequestComment.timestamp.desc())
             .limit(limit)
-            .iterate(pullRequestComment));
+            .iterate());
     }
 
 }

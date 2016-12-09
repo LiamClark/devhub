@@ -25,9 +25,9 @@ public class Courses extends Controller<Course> {
 	@Transactional
 	public Course find(String courseCode) {
 		Preconditions.checkNotNull(courseCode);
-		return ensureNotNull(query().from(course)
-			.where(course.course.code.equalsIgnoreCase(courseCode))
-			.singleResult(course), "Could not find course with code: " + courseCode);
+		return ensureNotNull(query().selectFrom(course)
+			.where(course.code.equalsIgnoreCase(courseCode))
+			.fetchOne(), "Could not find course with code: " + courseCode);
 	}
 
 	@Transactional

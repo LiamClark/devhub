@@ -31,10 +31,10 @@ public class PullRequests extends Controller<PullRequest> {
 	 */
 	@Transactional
 	public PullRequest findById(final RepositoryEntity repositoryEntity, final long id) {
-		return ensureNotNull(query().from(pullRequest)
+		return ensureNotNull(query().selectFrom(pullRequest)
 				.where(pullRequest.issueId.eq(id)
 						.and(pullRequest.repository.eq(repositoryEntity)))
-				.singleResult(pullRequest), "No pull request exists for id " + id);
+				.fetchOne(), "No pull request exists for id " + id);
 	}
 
 	/**
@@ -45,11 +45,11 @@ public class PullRequests extends Controller<PullRequest> {
 	 */
 	@Transactional
 	public Optional<PullRequest> findOpenPullRequest(final RepositoryEntity repositoryEntity, final String branchName) {
-		return Optional.ofNullable(query().from(pullRequest)
+		return Optional.ofNullable(query().selectFrom(pullRequest)
 			.where(pullRequest.repository.eq(repositoryEntity))
 			.where(pullRequest.branchName.eq(branchName))
 			.where(pullRequest.open.isTrue())
-			.singleResult(pullRequest));
+			.fetchOne());
 	}
 
 	/**
@@ -59,11 +59,11 @@ public class PullRequests extends Controller<PullRequest> {
 	 */
 	@Transactional
 	public List<PullRequest> findOpenPullRequests(final RepositoryEntity repositoryEntity) {
-		return query().from(pullRequest)
+		return query().selectFrom(pullRequest)
 			.where(pullRequest.repository.eq(repositoryEntity))
 			.where(pullRequest.open.isTrue())
 			.orderBy(pullRequest.issueId.desc())
-			.list(pullRequest);
+			.fetch();
 	}
 
 	/**
@@ -73,11 +73,11 @@ public class PullRequests extends Controller<PullRequest> {
 	 */
 	@Transactional
 	public List<PullRequest> findClosedPullRequests(final RepositoryEntity repositoryEntity) {
-		return query().from(pullRequest)
+		return query().selectFrom(pullRequest)
 			.where(pullRequest.repository.eq(repositoryEntity))
 			.where(pullRequest.open.isFalse())
 			.orderBy(pullRequest.issueId.desc())
-			.list(pullRequest);
+			.fetch();
 	}
 
 	/**
@@ -88,11 +88,11 @@ public class PullRequests extends Controller<PullRequest> {
 	 */
 	@Transactional
 	public boolean openPullRequestExists(final RepositoryEntity repositoryEntity, final String branchName) {
-		return query().from(pullRequest)
+		return query().selectFrom(pullRequest)
 			.where(pullRequest.repository.eq(repositoryEntity))
 			.where(pullRequest.branchName.eq(branchName))
 			.where(pullRequest.open.isTrue())
-			.exists();
+			.fetchCount() > 0;
 	}
 
 	/**
@@ -103,11 +103,11 @@ public class PullRequests extends Controller<PullRequest> {
      */
 	@Transactional
 	public Stream<PullRequest> findLastPullRequests(final List<? extends RepositoryEntity> repositoryEntities, long limit) {
-		return toStream(query().from(pullRequest)
+		return toStream(query().selectFrom(pullRequest)
 			.where(pullRequest.repository.in(repositoryEntities))
 			.orderBy(pullRequest.timestamp.desc())
 			.limit(limit)
-			.iterate(pullRequest));
+			.iterate());
 	}
 
 }

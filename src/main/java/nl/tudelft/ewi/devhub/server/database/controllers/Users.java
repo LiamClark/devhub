@@ -14,6 +14,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+
+import static com.querydsl.core.group.GroupBy.groupBy;
+
 public class Users extends Controller<User> {
 
 	@Inject
@@ -23,9 +26,9 @@ public class Users extends Controller<User> {
 
 	@Transactional
 	public User find(long id) {
-		User user = query().from(QUser.user)
+		User user = query().selectFrom(QUser.user)
 			.where(QUser.user.id.eq(id))
-			.singleResult(QUser.user);
+			.fetchOne();
 
 		return ensureNotNull(user, "Could not find user with id: " + id);
 	}
@@ -34,9 +37,9 @@ public class Users extends Controller<User> {
 	public User findByNetId(String netId) {
 		Preconditions.checkNotNull(netId);
 		
-		User user = query().from(QUser.user)
+		User user = query().selectFrom(QUser.user)
 			.where(QUser.user.netId.equalsIgnoreCase(netId))
-			.singleResult(QUser.user);
+			.fetchOne();
 
 		return ensureNotNull(user, "Could not find user with netID:" + netId);
 	}
@@ -45,17 +48,17 @@ public class Users extends Controller<User> {
 	public List<User> listAllWithNetIdPrefix(String prefix) {
 		Preconditions.checkNotNull(prefix);
 		
-		return query().from(QUser.user)
+		return query().selectFrom(QUser.user)
 			.where(QUser.user.netId.startsWithIgnoreCase(prefix))
 			.orderBy(QUser.user.netId.toLowerCase().asc())
-			.list(QUser.user);
+			.fetch();
 	}
 
 	@Transactional
 	public List<User> listAdministrators() {
-		return query().from(QUser.user)
+		return query().selectFrom(QUser.user)
 			.where(QUser.user.admin.isTrue())
-			.list(QUser.user);
+			.fetch();
 	}
 
 	@Transactional
@@ -70,10 +73,10 @@ public class Users extends Controller<User> {
 				.map(String::toLowerCase)
 				.collect(Collectors.toList());
 
-		return query().from(QUser.user)
+		return query().selectFrom(QUser.user)
 			.where(QUser.user.netId.toLowerCase().in(lowerCasedNetIds))
 			.orderBy(QUser.user.netId.toLowerCase().asc())
-			.map(QUser.user.netId, QUser.user);
+			.transform(groupBy(QUser.user.netId).as(QUser.user));
 	}
 
 }

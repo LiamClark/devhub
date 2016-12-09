@@ -14,6 +14,8 @@ import javax.persistence.EntityNotFoundException;
 import java.util.Collection;
 import java.util.Map;
 
+
+import static com.querydsl.core.group.GroupBy.groupBy;
 import static nl.tudelft.ewi.devhub.server.database.entities.QBuildResult.buildResult;
 
 public class BuildResults extends Controller<BuildResult> {
@@ -33,10 +35,10 @@ public class BuildResults extends Controller<BuildResult> {
 		Preconditions.checkNotNull(repository);
 		Preconditions.checkNotNull(commitId);
 		
-		BuildResult result = query().from(buildResult)
+		BuildResult result = query().selectFrom(buildResult)
 				.where(buildResult.commit.repository.id.eq(repository.getId()))
 				.where(buildResult.commit.commitId.equalsIgnoreCase(commitId))
-				.singleResult(buildResult);
+				.fetchOne();
 
 		if (result == null) {
 			throw new EntityNotFoundException();
@@ -53,10 +55,10 @@ public class BuildResults extends Controller<BuildResult> {
 			return ImmutableMap.of();
 		}
 
-		return query().from(buildResult)
+		return query().selectFrom(buildResult)
 				.where(buildResult.commit.repository.eq(repository)
 						.and(buildResult.commit.commitId.in(commitIds)))
-				.map(buildResult.commit.commitId, buildResult);
+				.transform(groupBy(buildResult.commit.commitId).as(buildResult));
 	}
 
 	@Transactional

@@ -19,18 +19,18 @@ public class Assignments extends Controller<Assignment> {
     }
 
     public Assignment find(CourseEdition course, Long assignmentId) {
-        return ensureNotNull(query().from(QAssignment.assignment)
+        return ensureNotNull(query().selectFrom(QAssignment.assignment)
             .where(QAssignment.assignment.courseEdition.eq(course)
             .and(QAssignment.assignment.assignmentId.eq(assignmentId)))
-            .singleResult(QAssignment.assignment),
+            .fetchOne(),
             "Could not find assignment " + assignmentId + " for " + course.getCode());
     }
 
     public boolean exists(CourseEdition course, Long assignmentId) {
-        return query().from(QAssignment.assignment)
+        return query().selectFrom(QAssignment.assignment)
             .where(QAssignment.assignment.courseEdition.eq(course)
             .and(QAssignment.assignment.assignmentId.eq(assignmentId)))
-            .exists();
+            .fetchCount() > 0;
     }
 
 }

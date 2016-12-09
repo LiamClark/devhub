@@ -21,9 +21,9 @@ public class RepositoriesController extends Controller<RepositoryEntity> {
 
 	@Transactional
 	public RepositoryEntity find(final String repositoryName) {
-		return ensureNotNull(query().from(repositoryEntity)
+		return ensureNotNull(query().selectFrom(repositoryEntity)
 			.where(repositoryEntity.repositoryName.equalsIgnoreCase(repositoryName))
-			.singleResult(repositoryEntity), String.format("No repository found for %s", repositoryName));
+			.fetchOne(), String.format("No repository found for %s", repositoryName));
 	}
 
 }

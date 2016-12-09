@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+
+import static com.querydsl.core.group.GroupBy.groupBy;
 import static nl.tudelft.ewi.devhub.server.database.entities.comments.QCommitComment.commitComment;
 
 /**
@@ -33,11 +35,11 @@ public class CommitComments extends Controller<CommitComment> {
      */
     @Transactional
     public List<CommitComment> getCommentsFor(RepositoryEntity repositoryEntity, String... commitIds) {
-        return query().from(commitComment)
+        return query().selectFrom(commitComment)
                 .where(commitComment.source.sourceFilePath.isNull()
                         .and(commitComment.commit.repository.eq(repositoryEntity)
                                 .and(commitComment.commit.commitId.in(commitIds))))
-            .list(commitComment);
+            .fetch();
     }
 
     /**
@@ -48,11 +50,11 @@ public class CommitComments extends Controller<CommitComment> {
      */
     @Transactional
     public List<CommitComment> getCommentsFor(RepositoryEntity repositoryEntity, List<String> commitIds) {
-        return query().from(commitComment)
+        return query().selectFrom(commitComment)
                 .where(commitComment.source.sourceFilePath.isNull()
                         .and(commitComment.commit.repository.eq(repositoryEntity)
                                 .and(commitComment.commit.commitId.in(commitIds))))
-                .list(commitComment);
+                .fetch();
     }
 
     /**
@@ -63,11 +65,11 @@ public class CommitComments extends Controller<CommitComment> {
      */
     @Transactional
     public List<CommitComment> getInlineCommentsFor(RepositoryEntity repositoryEntity, Collection<String> commitIds) {
-        return query().from(commitComment)
+        return query().selectFrom(commitComment)
             .where(commitComment.source.sourceFilePath.isNotNull()
                     .and(commitComment.commit.repository.eq(repositoryEntity)
                             .and(commitComment.commit.commitId.in(commitIds))))
-            .list(commitComment);
+            .fetch();
     }
 
     /**
@@ -77,11 +79,10 @@ public class CommitComments extends Controller<CommitComment> {
      */
     @Transactional
     public Map<String, Long> commentsFor(RepositoryEntity repositoryEntity, Collection<String> commitIds) {
-        return query().from(commitComment)
+        return query().selectFrom(commitComment)
             .where(commitComment.commit.repository.eq(repositoryEntity)
                     .and(commitComment.commit.commitId.in(commitIds)))
-            .groupBy(commitComment.commit.commitId)
-            .map(commitComment.commit.commitId, commitComment.commentId.count());
+            .transform(groupBy(commitComment.commit.commitId).as( commitComment.commentId.count()));
     }
 
     /**
@@ -92,11 +93,11 @@ public class CommitComments extends Controller<CommitComment> {
      */
     @Transactional
     public Stream<CommitComment> getMostRecentCommitComments(List<? extends RepositoryEntity> repositoryEntities, long limit) {
-        return toStream(query().from(commitComment)
+        return toStream(query().selectFrom(commitComment)
             .where(commitComment.commit.repository.in(repositoryEntities))
             .orderBy(commitComment.timestamp.desc())
             .limit(limit)
-            .iterate(commitComment));
+            .iterate());
     }
 
 }

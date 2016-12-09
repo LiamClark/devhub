@@ -21,16 +21,16 @@ public class BuildServers extends Controller<BuildServer> {
 
 	@Transactional
 	public List<BuildServer> listAll() {
-		return ImmutableList.copyOf(query().from(QBuildServer.buildServer)
+		return ImmutableList.copyOf(query().selectFrom(QBuildServer.buildServer)
 				.orderBy(QBuildServer.buildServer.name.toLowerCase().asc())
-				.list(QBuildServer.buildServer));
+				.fetch());
 	}
 
 	@Transactional
 	public BuildServer findById(long id) {
-		BuildServer buildServer = query().from(QBuildServer.buildServer)
+		BuildServer buildServer = query().selectFrom(QBuildServer.buildServer)
 				.where(QBuildServer.buildServer.id.eq(id))
-				.singleResult(QBuildServer.buildServer);
+				.fetchOne();
 		
 		if (buildServer == null) {
 			throw new EntityNotFoundException();
@@ -43,10 +43,10 @@ public class BuildServers extends Controller<BuildServer> {
 		Preconditions.checkNotNull(name);
 		Preconditions.checkNotNull(secret);
 		
-		BuildServer buildServer = query().from(QBuildServer.buildServer)
+		BuildServer buildServer = query().selectFrom(QBuildServer.buildServer)
 				.where(QBuildServer.buildServer.name.equalsIgnoreCase(name))
 				.where(QBuildServer.buildServer.secret.eq(secret))
-				.singleResult(QBuildServer.buildServer);
+				.fetchOne();
 		
 		if (buildServer == null) {
 			throw new EntityNotFoundException();

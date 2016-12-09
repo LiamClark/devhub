@@ -27,20 +27,20 @@ public class PrivateRepositories extends Controller<PrivateRepository> {
 		Preconditions.checkNotNull(username);
 		Preconditions.checkNotNull(repositoryTitle);
 
-		return ensureNotNull(query().from(privateRepository)
+		return ensureNotNull(query().selectFrom(privateRepository)
 				.where(privateRepository.owner.netId.equalsIgnoreCase(username)
 					.and(privateRepository.title.equalsIgnoreCase(repositoryTitle)))
-				.singleResult(privateRepository),
+				.fetchOne(),
 			"Could not find repository " + username + "/" + repositoryTitle);
 	}
 
 	@Transactional
 	public List<PrivateRepository> findPrivateRepositories(User user) {
 		Preconditions.checkNotNull(user);
-		return query().from(privateRepository)
+		return query().selectFrom(privateRepository)
 			.where(privateRepository.owner.eq(user)
 			.or(privateRepository.collaborators.contains(user)))
-			.list(privateRepository);
+			.fetch();
 	}
 
 }

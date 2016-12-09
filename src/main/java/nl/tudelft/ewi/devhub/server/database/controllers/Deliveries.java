@@ -1,5 +1,7 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
+import com.querydsl.core.group.GroupBy;
+import com.querydsl.core.types.QMap;
 import nl.tudelft.ewi.devhub.server.database.entities.Assignment;
 import nl.tudelft.ewi.devhub.server.database.entities.Delivery;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
@@ -15,8 +17,9 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.mysema.query.group.GroupBy.groupBy;
-import static com.mysema.query.group.GroupBy.list;
+
+import static com.querydsl.core.group.GroupBy.groupBy;
+import static com.querydsl.core.group.GroupBy.list;
 import static nl.tudelft.ewi.devhub.server.database.entities.Delivery.State;
 import static nl.tudelft.ewi.devhub.server.database.entities.QDelivery.delivery;
 
@@ -38,11 +41,11 @@ public class Deliveries extends Controller<Delivery> {
      */
     @Transactional
     public Optional<Delivery> getLastDelivery(Assignment assignment, Group group) {
-        return Optional.ofNullable(query().from(delivery)
+        return Optional.ofNullable(query().selectFrom(delivery)
             .where(delivery.assignment.eq(assignment))
             .where(delivery.group.eq(group))
             .orderBy(delivery.timestamp.desc())
-            .singleResult(delivery));
+            .fetchOne());
     }
 
     /**
@@ -54,11 +57,11 @@ public class Deliveries extends Controller<Delivery> {
      */
     @Transactional
     public boolean lastDeliveryIsApprovedOrDisapproved(Assignment assignment, Group group) {
-        return query().from(delivery)
+        return query().selectFrom(delivery)
 			.where(delivery.assignment.eq(assignment)
 				.and(delivery.group.eq(group))
 				.and(delivery.review.state.in(State.APPROVED, State.DISAPPROVED)))
-            .exists();
+            .fetchCount() > 0;
     }
 
     /**
@@ -69,11 +72,11 @@ public class Deliveries extends Controller<Delivery> {
      */
     @Transactional
     public List<Delivery> getDeliveries(Assignment assignment, Group group) {
-        return query().from(delivery)
+        return query().selectFrom(delivery)
 			.where(delivery.assignment.eq(assignment)
 				.and(delivery.group.eq(group)))
 			.orderBy(delivery.timestamp.desc())
-			.list(delivery);
+			.fetch();
     }
 
     /**
@@ -83,10 +86,11 @@ public class Deliveries extends Controller<Delivery> {
      */
     @Transactional
     public List<Delivery> getLastDeliveries(Assignment assignment) {
-        Map<Group, List<Delivery>> deliveriesMap = query().from(delivery)
-			.where(delivery.assignment.eq(assignment))
-			.orderBy(delivery.timestamp.desc())
-            .transform(groupBy(delivery.group).as(list(delivery)));
+        Map<Group, List<Delivery>> deliveriesMap = query().selectFrom(delivery)
+                .where(delivery.assignment.eq(assignment))
+                .orderBy(delivery.timestamp.desc())
+                .transform(groupBy(delivery.group).as(list(delivery)));
+
 
         Comparator<Delivery> byState = Comparator.comparing(Delivery::getState);
         Comparator<Delivery> bySubmissionDate = Comparator.<Delivery> naturalOrder();
@@ -104,10 +108,10 @@ public class Deliveries extends Controller<Delivery> {
      */
     @Transactional
 	public Delivery find(Group group, long deliveryId) {
-		return ensureNotNull(query().from(delivery)
+		return ensureNotNull(query().selectFrom(delivery)
 				.where(delivery.deliveryId.eq(deliveryId)
 					.and(delivery.group.eq(group)))
-				.singleResult(delivery),
+				.fetchOne(),
             "No delivery found for id " + deliveryId);
     }
 
@@ -119,7 +123,7 @@ public class Deliveries extends Controller<Delivery> {
      */
     @Transactional
     public Stream<Delivery> getMostRecentDeliveries(List<Group> groups, long limit) {
-        Map<Group, List<Delivery>> deliveriesMap = query().from(delivery)
+        Map<Group, List<Delivery>> deliveriesMap = query().selectFrom(delivery)
             .where(delivery.group.in(groups))
             .orderBy(delivery.timestamp.desc())
             .limit(limit)

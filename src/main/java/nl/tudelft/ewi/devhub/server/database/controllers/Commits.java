@@ -96,10 +96,10 @@ public class Commits extends Controller<Commit> {
 	 */
 	@Transactional
 	public boolean exists(RepositoryEntity repository, String commitId) {
-		return query().from(commit)
+		return query().selectFrom(commit)
 			.where(commit.repository.eq(repository))
 			.where(commit.commitId.eq(commitId))
-			.exists();
+			.fetchCount() > 0;
 	}
 
 	/**
@@ -110,10 +110,10 @@ public class Commits extends Controller<Commit> {
      */
 	@Transactional
 	public Stream<Commit> getMostRecentCommits(List<? extends RepositoryEntity> repositoryEntities, long limit) {
-		return toStream(query().from(commit)
+		return toStream(query().selectFrom(commit)
 			.where(commit.repository.in(repositoryEntities))
 			.orderBy(commit.pushTime.desc())
 			.limit(limit)
-			.iterate(commit));
+			.iterate());
 	}
 }
