@@ -1,6 +1,7 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
 import com.querydsl.jpa.JPAExpressions;
+import com.querydsl.jpa.JPQLQuery;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
@@ -50,12 +51,11 @@ public class Warnings extends Controller<Warning> {
             .transform(groupBy(commitWarning.commit.commitId).as(commitWarning.id.count()));
     }
 
-    protected List<LineWarning> getLineWarningsNotIntroducedInCommit(final RepositoryEntity repositoryEntity, final Collection<String> commitIds) {
+    protected JPQLQuery<LineWarning> getLineWarningsNotIntroducedInCommit(final RepositoryEntity repositoryEntity, final Collection<String> commitIds) {
         return JPAExpressions.selectFrom(lineWarning)
             .where(lineWarning.repository.eq(repositoryEntity)
                 .and(lineWarning.commit.commitId.in(commitIds)
-                    .and(lineWarning.source.sourceCommit.commitId.ne(lineWarning.commit.commitId))))
-            .fetch();
+                    .and(lineWarning.source.sourceCommit.commitId.ne(lineWarning.commit.commitId))));
     }
 
     /**
@@ -89,11 +89,10 @@ public class Warnings extends Controller<Warning> {
                 .fetch();
     }
 
-    protected List<LineWarning> getLineWarningsForQuery(final RepositoryEntity repositoryEntity, final Collection<String> commitIds) {
+    protected JPQLQuery<LineWarning> getLineWarningsForQuery(final RepositoryEntity repositoryEntity, final Collection<String> commitIds) {
         return JPAExpressions.selectFrom(lineWarning)
             .where(lineWarning.repository.eq(repositoryEntity)
-                    .and(lineWarning.commit.commitId.in(commitIds)))
-            .fetch();
+                    .and(lineWarning.commit.commitId.in(commitIds)));
     }
 
     /**

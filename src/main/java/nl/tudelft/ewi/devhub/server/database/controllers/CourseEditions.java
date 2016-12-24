@@ -2,6 +2,7 @@ package nl.tudelft.ewi.devhub.server.database.controllers;
 
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.jpa.JPAExpressions;
+import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQuery;
 import nl.tudelft.ewi.devhub.server.database.entities.Course;
 import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
@@ -99,10 +100,9 @@ public class CourseEditions extends Controller<CourseEdition> {
 	public List<CourseEdition> listNotYetParticipatedCourses(User user) {
 		Preconditions.checkNotNull(user);
 
-		List<CourseEdition> participatingCourses = JPAExpressions.selectFrom(group)
-			.where(group.members.contains(user))
-				.select(group.courseEdition)
-			.fetch();
+		JPQLQuery<CourseEdition> participatingCourses = JPAExpressions.selectFrom(group)
+				.where(group.members.contains(user))
+				.select(group.courseEdition);
 
 		return activeCoursesBaseQuery()
 			.where(courseEdition.notIn(participatingCourses))
