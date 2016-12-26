@@ -81,7 +81,8 @@ public class CommitComments extends Controller<CommitComment> {
     public Map<String, Long> commentsFor(RepositoryEntity repositoryEntity, Collection<String> commitIds) {
         return query().selectFrom(commitComment)
             .where(commitComment.commit.repository.eq(repositoryEntity)
-                    .and(commitComment.commit.commitId.in(commitIds)))
+                    .and(commitComment.commit.commitId.in(commitIds))
+            ).groupBy(commitComment.commit.commitId)
             .transform(groupBy(commitComment.commit.commitId).as( commitComment.commentId.count()));
     }
 

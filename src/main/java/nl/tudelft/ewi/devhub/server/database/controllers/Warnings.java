@@ -47,7 +47,8 @@ public class Warnings extends Controller<Warning> {
         return query().selectFrom(commitWarning)
             .where(commitWarning.repository.eq(repositoryEntity)
                 .and(commitWarning.commit.commitId.in(commitIds))
-                    .and(commitWarning.notIn(getLineWarningsNotIntroducedInCommit(repositoryEntity, commitIds))))
+                    .and(commitWarning.notIn(getLineWarningsNotIntroducedInCommit(repositoryEntity, commitIds)))
+            ).groupBy(commitWarning.commit.commitId)
             .transform(groupBy(commitWarning.commit.commitId).as(commitWarning.id.count()));
     }
 
