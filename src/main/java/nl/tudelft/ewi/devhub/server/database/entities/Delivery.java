@@ -9,7 +9,6 @@ import nl.tudelft.ewi.devhub.server.database.entities.rubrics.Characteristic;
 import nl.tudelft.ewi.devhub.server.database.entities.rubrics.Mastery;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
@@ -43,11 +42,7 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.validation.constraints.NotNull;
 import java.net.URI;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Delivery for an assignment
@@ -237,6 +232,28 @@ public class Delivery implements Event, Base {
     public boolean isLate() {
         Date dueDate = getAssignment().getDueDate();
         return dueDate != null && getTimestamp().after(dueDate);
+    }
+
+    @JsonIgnore
+    public void setBuildFailed() {
+        Optional<Mastery> buildFailureMastery = findMasteryByDescription("Build for submitted commit fails");
+        buildFailureMastery.ifPresent(mastery -> this.getRubrics().put(mastery.getCharacteristic(), mastery));
+    }
+
+    @JsonIgnore
+    public void setConsecutiveBuildFailures() {
+	    Optional<Mastery> buildFailureMastery = findMasteryByDescription("Four subsequent failing");
+        buildFailureMastery.ifPresent(mastery -> this.getRubrics().put(mastery.getCharacteristic(), mastery));
+    }
+
+    @JsonIgnore
+    private Optional<Mastery> findMasteryByDescription(String description) {
+        return this.getAssignment().getTasks().stream()
+                .flatMap(tasks -> tasks.getCharacteristics().stream())
+                .filter(mastery -> mastery.getDescription().equals("Build failure penalty"))
+                .findAny().flatMap(characteristic -> characteristic.getLevels().stream()
+                        .filter(mastery -> mastery.getDescription().contains(description))
+                        .findAny());
     }
 
 	@Override

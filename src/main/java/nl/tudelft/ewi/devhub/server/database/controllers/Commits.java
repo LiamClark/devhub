@@ -36,6 +36,13 @@ public class Commits extends Controller<Commit> {
 		return Optional.ofNullable(entityManager.find(Commit.class, key));
 	}
 
+	public Optional<Commit> firstCommitInRepo(RepositoryEntity repositoryEntity) {
+	 return Optional.ofNullable(query().from(commit)
+				.where(commit.repository.eq(repositoryEntity))
+				.orderBy(commit.commitTime.asc())
+				.singleResult(commit));
+	}
+
 	/**
 	 * Ensure that a commit exists in the database. Recursively check if the parents exists as well.
 	 *

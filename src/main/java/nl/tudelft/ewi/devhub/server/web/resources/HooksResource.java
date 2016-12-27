@@ -17,14 +17,13 @@ import nl.tudelft.ewi.devhub.server.backend.warnings.FindBugsWarningGenerator.Fi
 import nl.tudelft.ewi.devhub.server.backend.warnings.PMDWarningGenerator;
 import nl.tudelft.ewi.devhub.server.backend.warnings.PMDWarningGenerator.PMDReport;
 import nl.tudelft.ewi.devhub.server.backend.warnings.SuccessiveBuildFailureGenerator;
-import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
-import nl.tudelft.ewi.devhub.server.database.controllers.Commits;
-import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
-import nl.tudelft.ewi.devhub.server.database.controllers.RepositoriesController;
-import nl.tudelft.ewi.devhub.server.database.controllers.Warnings;
+import nl.tudelft.ewi.devhub.server.database.controllers.*;
 import nl.tudelft.ewi.devhub.server.database.entities.BuildResult;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
+import nl.tudelft.ewi.devhub.server.database.entities.Delivery;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
+import nl.tudelft.ewi.devhub.server.database.entities.rubrics.Characteristic;
+import nl.tudelft.ewi.devhub.server.database.entities.rubrics.Mastery;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.CheckstyleWarning;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.CommitWarning;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.FindbugsWarning;
@@ -57,8 +56,11 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import java.io.UnsupportedEncodingException;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -83,19 +85,20 @@ public class HooksResource extends Resource {
 	private final FindBugsWarningGenerator findBugsWarningGenerator;
 	private final SuccessiveBuildFailureGenerator successiveBuildFailureGenerator;
 	private final ExecutorService executor;
+	private final Deliveries deliveries;
 
 	@Inject
 	public HooksResource(BuildResults buildResults,
-	                     Commits commits,
-	                     Warnings warnings,
-	                     BuildResultMailer mailer,
-	                     ExecutorService executor,
-	                     PMDWarningGenerator pmdWarningGenerator,
-	                     GitPushHandlerWorkerFactory gitPushHandlerWorkerFactory,
-	                     RepositoriesController repositoriesController,
-	                     FindBugsWarningGenerator findBugsWarningGenerator,
-	                     CheckstyleWarningGenerator checkstyleWarningGenerator,
-	                     SuccessiveBuildFailureGenerator successiveBuildFailureGenerator) {
+						 Commits commits,
+						 Warnings warnings,
+						 BuildResultMailer mailer,
+						 ExecutorService executor,
+						 PMDWarningGenerator pmdWarningGenerator,
+						 GitPushHandlerWorkerFactory gitPushHandlerWorkerFactory,
+						 RepositoriesController repositoriesController,
+						 FindBugsWarningGenerator findBugsWarningGenerator,
+						 CheckstyleWarningGenerator checkstyleWarningGenerator,
+						 SuccessiveBuildFailureGenerator successiveBuildFailureGenerator, Deliveries deliveries) {
 		this.mailer = mailer;
 		this.commits = commits;
 		this.warnings = warnings;
@@ -107,6 +110,7 @@ public class HooksResource extends Resource {
 		this.findBugsWarningGenerator = findBugsWarningGenerator;
 		this.checkstyleWarningGenerator = checkstyleWarningGenerator;
 		this.successiveBuildFailureGenerator = successiveBuildFailureGenerator;
+		this.deliveries = deliveries;
 	}
 
 	/**
@@ -265,6 +269,7 @@ public class HooksResource extends Resource {
 		RepositoryEntity repositoryEntity = repositoriesController.find(repoName);
 		Commit commit = commits.ensureExists(repositoryEntity, commitId);
 
+
 		BuildResult result;
 		try {
 			result = buildResults.find(repositoryEntity, commitId);
@@ -285,6 +290,7 @@ public class HooksResource extends Resource {
 
 		if (!result.getSuccess()) {
 			mailer.sendFailedBuildResult(Lists.newArrayList(Locale.ENGLISH), result);
+			fillInBuildFailureRubric(commit);
 		}
 
 		try {
@@ -294,8 +300,14 @@ public class HooksResource extends Resource {
 		catch (Exception e) {
 			log.warn("Failed to persist sucessive build failure for {}", e, result);
 		}
-
 	}
+
+	@Transactional
+	public void fillInBuildFailureRubric(Commit commit) {
+		deliveries.deliveryForCommit(commit)
+				.ifPresent(Delivery::setBuildFailed);
+	}
+
 
 	@POST
 	@Path("pmd-result")

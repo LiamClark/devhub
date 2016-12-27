@@ -8,9 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import nl.tudelft.ewi.devhub.server.database.Base;
 import nl.tudelft.ewi.devhub.server.database.entities.identity.FKSegmentedIdentifierGenerator;
-import nl.tudelft.ewi.devhub.server.database.entities.rubrics.DutchGradingStrategy;
-import nl.tudelft.ewi.devhub.server.database.entities.rubrics.GradingStrategy;
-import nl.tudelft.ewi.devhub.server.database.entities.rubrics.Task;
+import nl.tudelft.ewi.devhub.server.database.entities.rubrics.*;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -43,6 +41,7 @@ import java.io.Serializable;
 import java.net.URI;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Created by jgmeligmeyling on 04/03/15.
@@ -123,6 +122,7 @@ public class Assignment implements Comparable<Assignment>, Base {
 			.mapToDouble(Task::getMaximalNumberOfPoints)
 			.sum();
 	}
+
 
 	@JsonIgnore
 	public GradingStrategy getGradingStrategy() {

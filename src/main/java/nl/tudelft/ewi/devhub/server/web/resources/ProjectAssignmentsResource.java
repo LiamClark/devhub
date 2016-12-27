@@ -10,6 +10,7 @@ import com.google.inject.persist.Transactional;
 import com.google.inject.servlet.RequestScoped;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import nl.tudelft.ewi.devhub.server.backend.ConsecutiveBuildFailureBackend;
 import nl.tudelft.ewi.devhub.server.backend.DeliveriesBackend;
 import nl.tudelft.ewi.devhub.server.database.controllers.Assignments;
 import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
@@ -69,6 +70,7 @@ public class ProjectAssignmentsResource extends Resource {
     private final Deliveries deliveries;
     private final DeliveriesBackend deliveriesBackend;
     private final Assignments assignments;
+    private final ConsecutiveBuildFailureBackend consecutiveBuildFailureBackend;
 
     @Inject
     public ProjectAssignmentsResource(final TemplateEngine templateEngine,
@@ -79,7 +81,8 @@ public class ProjectAssignmentsResource extends Resource {
                                       final RepositoriesApi repositoriesApi,
                                       final DeliveriesBackend deliveriesBackend,
                                       final Assignments assignments,
-                                      final Commits commits) {
+                                      final Commits commits,
+                                      ConsecutiveBuildFailureBackend consecutiveBuildFailureBackend) {
 
         this.templateEngine = templateEngine;
         this.group = group;
@@ -91,6 +94,7 @@ public class ProjectAssignmentsResource extends Resource {
         this.deliveriesBackend = deliveriesBackend;
         this.assignments = assignments;
         this.commits = commits;
+        this.consecutiveBuildFailureBackend = consecutiveBuildFailureBackend;
     }
 
 	protected Map<String, Object> getBaseParameters() {
@@ -188,6 +192,7 @@ public class ProjectAssignmentsResource extends Resource {
     @POST
     @Path("{assignmentId : \\d+}")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Transactional
     public Response postAssignment(@Context HttpServletRequest request,
                                    @PathParam("assignmentId") long assignmentId,
                                    MultipartFormDataInput formData) throws IOException, ApiError {
@@ -198,12 +203,20 @@ public class ProjectAssignmentsResource extends Resource {
 
         Assignment assignment = assignments.find(group.getCourse(), assignmentId);
 
+
         Delivery delivery = new Delivery();
         delivery.setAssignment(assignment);
 
         delivery.setCommit(commits.ensureExists(repositoryEntity, commitId));
         delivery.setNotes(notes);
         delivery.setGroup(group);
+
+        Optional.of(delivery).filter(d -> d.getCommit().getBuildResult().hasFailed()).ifPresent(Delivery::setBuildFailed);
+        if (consecutiveBuildFailureBackend.hasConsecutiveBuildFailures(group, delivery)) {
+            delivery.setConsecutiveBuildFailures();
+        }
+
+
         deliveriesBackend.deliver(delivery);
 
         addAttachments(formDataMap, delivery);
@@ -214,6 +227,7 @@ public class ProjectAssignmentsResource extends Resource {
 
         return redirect(request.getRequestURI());
     }
+
 
     private void addAttachments(Map<String, List<InputPart>> formDataMap, Delivery delivery) throws IOException, ApiError {
         List<InputPart> attachments = formDataMap.get("file-attachment");

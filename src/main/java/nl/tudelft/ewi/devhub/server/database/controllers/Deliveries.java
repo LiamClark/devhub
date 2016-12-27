@@ -1,11 +1,13 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
 import nl.tudelft.ewi.devhub.server.database.entities.Assignment;
+import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.Delivery;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 
 import com.google.inject.Inject;
 import com.google.inject.persist.Transactional;
+import nl.tudelft.ewi.devhub.server.database.entities.rubrics.Mastery;
 
 import javax.persistence.EntityManager;
 import java.util.Comparator;
@@ -109,6 +111,15 @@ public class Deliveries extends Controller<Delivery> {
 					.and(delivery.group.eq(group)))
 				.singleResult(delivery),
             "No delivery found for id " + deliveryId);
+    }
+
+
+    public Optional<Delivery> deliveryForCommit(Commit commit) {
+        return Optional.ofNullable(
+                query().from(delivery)
+                    .where(delivery.commit.eq(commit))
+                    .singleResult(delivery)
+        );
     }
 
     /**
