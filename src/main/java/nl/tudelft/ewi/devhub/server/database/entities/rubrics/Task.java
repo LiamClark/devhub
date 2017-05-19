@@ -56,6 +56,8 @@ public class Task implements Comparable<Task> {
 	@Column(name = "description", length = 1024)
 	private String description;
 
+	private long ordering;
+
 	/**
 	 * The skills, knowledge, and/or behavior to be demonstrated.
 	 */
@@ -85,6 +87,7 @@ public class Task implements Comparable<Task> {
 
 	public Task copyForNextYear(Assignment assignment) {
 		final Task newTask = new Task();
+		newTask.setOrdering(this.ordering);
 		newTask.setAssignment(assignment);
 		newTask.setDescription(this.description);
 		List<Characteristic> copyOfCharacteristics = this.getCharacteristics().stream().map(newTask::copyCharacteristic).collect(toList());

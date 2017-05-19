@@ -73,7 +73,7 @@ public class CourseView extends AuthenticatedView {
 		
 		SimpleDateFormat ft = new SimpleDateFormat("dd-MM-yyyy HH:mm");
 
-		getDriver().findElement(By.id("due-date")).sendKeys(ft.format(dueDate));		
+		getDriver().findElement(By.id("due-date")).sendKeys(ft.format(dueDate));
 		getDriver().findElement(By.id("name")).sendKeys(name);
 		getDriver().findElement(By.id("summary")).sendKeys(description);
 
@@ -125,7 +125,8 @@ public class CourseView extends AuthenticatedView {
 					Integer.parseInt(assignmentLinks.get(0).getText()), 
 					assignmentLinks.get(1).getText(),
 					dueDate,
-					assignmentLinks.get(2).findElement(By.className("btn")));
+					assignmentLinks.get(2).findElement(By.className("btn")),
+                    assignmentLinks.get(1));
 
 			assignments.add(assignment);
 		}
@@ -153,12 +154,18 @@ public class CourseView extends AuthenticatedView {
 
 		@Getter(AccessLevel.NONE)
 		private final WebElement anchor;
+        @Getter(AccessLevel.NONE)
+		private final WebElement assignmentOverview;
 
 		public AuthenticatedView click() {
 			anchor.click();
 			return new AuthenticatedView(getDriver());
 		}
 
+		public AssignmentOverviewView openAssignmentOverviewView() {
+			assignmentOverview.click();
+			return new AssignmentOverviewView(getDriver());
+		}
 		/**
 		 * Shortcut method to edit an assignment.
 		 *

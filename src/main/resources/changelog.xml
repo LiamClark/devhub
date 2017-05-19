@@ -1112,4 +1112,16 @@
 			baseColumnNames="label_id"/>
 	</changeSet>
 
+	<changeSet id="add_task_ordering" author="Liam Clark">
+		<addColumn tableName="assignment_task">
+			<column name="ordering" type="bigint">
+				<constraints nullable="false" />
+			</column>
+		</addColumn>
+	</changeSet>
+
+	<changeSet id="add_default_task_ordering" author="Liam Clark">
+		<sql>UPDATE assignment_task set ordering = task_id</sql>
+	</changeSet>
+
 </databaseChangeLog>

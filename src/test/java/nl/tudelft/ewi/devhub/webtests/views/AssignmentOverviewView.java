@@ -38,6 +38,17 @@ public class AssignmentOverviewView extends AuthenticatedView {
 		return listGroupsInTable(myCommitTable);
 	}
 
+	public RubricsView openRubricsView() {
+		final List<WebElement> menuItems = getDriver().findElements(By.id("simple-dropdown"));
+		menuItems.get(2).click();
+
+
+		final List<WebElement> angularMenuItems = getDriver().findElements(By.xpath("//ul"));
+		final WebElement rubricMenu = angularMenuItems.get(3);
+		rubricMenu.click();
+		return new RubricsView(getDriver() ,getDriver().findElement(By.id("new-task-button")));
+	}
+
 	private List<Project> listGroupsInTable(WebElement table) {
 		List<WebElement> entries = table.findElements(By.tagName("td"));
 		if (isEmptyList(entries)) {

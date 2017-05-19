@@ -16,6 +16,7 @@ public class TaskTest {
 
 		assertThat(newTask.getDescription()).isEqualTo("A task");
 		assertThat(newTask.getId()).isEqualTo(0);
+		assertThat(newTask.getOrdering()).isEqualTo(4);
 		assertThat(newTask.getCharacteristics().stream().map(Characteristic::getTask)).are(forTheTask(newTask));
 	}
 
@@ -24,6 +25,7 @@ public class TaskTest {
 
 		task.setDescription("A task");
 		task.setId(4);
+		task.setOrdering(4);
 		task.setCharacteristics(Lists.newArrayList(characteristicWithOneMastery()));
 		return task;
 	}

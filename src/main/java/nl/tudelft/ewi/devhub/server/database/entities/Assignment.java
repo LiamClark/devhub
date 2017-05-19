@@ -104,7 +104,7 @@ public class Assignment implements Comparable<Assignment>, Base {
     @Column(name="released")
     private boolean gradesReleased;
 
-	@OrderBy("id ASC")
+	@OrderBy("ordering ASC")
 	@JsonManagedReference
 	@OneToMany(mappedBy = "assignment", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
 	private List<Task> tasks;

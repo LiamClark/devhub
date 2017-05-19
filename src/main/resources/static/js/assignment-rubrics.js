@@ -24,9 +24,10 @@ function createCharacteristic() {
     };
 }
 
-function createTask() {
+function createTask(ordering) {
     return {
         description: "New task...",
+        ordering:  ordering,
         characteristics: [
             createCharacteristic()
         ]
@@ -37,7 +38,12 @@ module.controller('StatisticsControl', function($scope, $http, $q) {
     var levels = {};
 
     $scope.addTask = function() {
-        $scope.assignment.tasks.push(createTask())
+        var ordering = $scope.assignment.tasks.map(function(task){
+            return task.ordering
+        }).reduce(function(a,b) {
+            return Math.max(a,b)}, 0
+        ) + 1
+        $scope.assignment.tasks.push(createTask(ordering))
     };
 
     $scope.contextMenuForAssignment = function() {

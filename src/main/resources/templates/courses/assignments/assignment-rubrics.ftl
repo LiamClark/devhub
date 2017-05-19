@@ -74,9 +74,11 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <tr ng-if="!assignment.tasks.length">
+                    [#--we need to add tasks to the assignment so we need the button for now.--]
+                    [#--<tr ng-if="!assignment.tasks.length">--]
+                    <tr>
                         <td colspan="6">
-                            <em>Looks like you have no tasks yet. <a ng-click="addTask()" style="cursor: pointer;">Want to create one?</a></em>
+                            <em>Looks like you have no tasks yet. <a id="new-task-button" ng-click="addTask()" style="cursor: pointer;">Want to create one?</a></em>
                         </td>
                     </tr>
                     </tbody>

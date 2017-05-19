@@ -4,6 +4,7 @@
   "dueDate": null,
   "tasks": [
     {
+      "ordering" : 1,
       "description": "Smoke Testing",
       "characteristics": [
         {
@@ -28,6 +29,7 @@
     },
     {
       "description": "Feature Based Testing Testing",
+      "ordering" : 2,
       "characteristics": [
         {
           "weight": 6,
@@ -55,6 +57,7 @@
     },
     {
       "description": "Consecutive build failures",
+      "ordering" : 3,
       "characteristics": [
         {
           "description": "Consecutive build failures",

@@ -1,13 +1,11 @@
 package nl.tudelft.ewi.devhub.webtests;
 
-import com.google.inject.matcher.Matcher;
 import nl.tudelft.ewi.devhub.webtests.utils.WebTest;
 
 import nl.tudelft.ewi.devhub.webtests.views.CourseView;
 import nl.tudelft.ewi.devhub.webtests.views.CourseView.Assignment;
 import nl.tudelft.ewi.devhub.webtests.views.CourseView.Group;
 import nl.tudelft.ewi.devhub.webtests.views.CoursesView;
-import nl.tudelft.ewi.devhub.webtests.views.CoursesView.CourseOverview;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;

@@ -197,7 +197,7 @@ public class Bootstrapper {
 					log.debug("Persisted course: " + entity.getCode());
 				}
 
-				Map<Long, Assignment> assignmentEntities = new HashMap<Long, Assignment>();
+				Map<Long, Assignment> assignmentEntities = new HashMap<>();
 
 				for(Assignment assignment : bCourseEdition.getAssignments()) {
 					assignment.setCourseEdition(entity);
