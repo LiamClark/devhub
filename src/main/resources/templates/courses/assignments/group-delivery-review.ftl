@@ -80,12 +80,12 @@
 								[#list assignment.getTasks() as task]
 								<tbody class="task" data-id="${task.id?c}">
 									<tr class="active">
-										<td colspan="2"><strong>${task.description}</strong></td>
+										<td colspan="2"><span><strong>${task.description}<p class="octicon octicon-chevron-down" data-toggle="collapse" data-target=".collapse-target-${task?index}"></p></strong></span></td>
 										<td><strong>${task.getTotalWeight()?c}</strong></td>
 										<td><strong id="lbl-total-task-${task.id?c}">0</strong></td>
 									</tr>
 									[#list task.getCharacteristics() as characteristic]
-									<tr data-id="${characteristic.id?c}" data-weight="${characteristic.weight?c}" class="characteristic">
+									<tr data-id="${characteristic.id?c}" data-weight="${characteristic.weight?c}" class="characteristic collapse-target-${task?index}">
 										<td>${characteristic.description}</td>
 										<td>
 											[#list characteristic.getLevels() as level]
@@ -170,6 +170,20 @@
 	$(computeTotals)
 	$('[type="radio"]').on('change', computeTotals)
     $('[type="radio"]').on('change', persistMasteries)
+
+	var down = "octicon-chevron-down"
+	var right ="octicon-chevron-right"
+
+	$('[data-target*="collapse-target"]').click(function() {
+	    var tableRow = $(this);
+	    if(tableRow.hasClass(down)) {
+	        tableRow.removeClass(down).addClass(right)
+		} else {
+            tableRow.removeClass(right).addClass(down)
+		}
+
+	})
+
 </script>
 
 [/@macros.renderScripts]
